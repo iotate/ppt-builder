@@ -17,16 +17,63 @@ jobs:
       contents: write 
 
     steps:
-      # 0.安装 LLVM
+      # 0. 设置 MSVC 开发环境并验证 LLVM
+      - name: Setup MSVC Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+
       - name: Install LLVM
-        id: llvm
+        id: install-llvm
         uses: KyleMayes/install-llvm-action@v2
         with:
-          version: "18" # 你可以指定一个稳定的版本号，如 "17" 或 "18"
-
-      # 👇 新增：设置 LIBCLANG_PATH 环境变量
-      - name: Set LIBCLANG_PATH
-        run: echo "LIBCLANG_PATH=${{ steps.llvm.outputs.libclang_path }}" >> $env:GITHUB_ENV
+          version: "18"
+          
+      - name: Setup libclang for bindgen
+        run: |
+          # 尝试多个可能的 LLVM 安装路径
+          $possiblePaths = @(
+            "${{ steps.install-llvm.outputs.llvm-path }}",
+            "C:\Program Files\LLVM",
+            "C:\LLVM",
+            "${env:ProgramFiles}\LLVM"
+          ) | Where-Object { $_ -and (Test-Path $_) }
+          
+          Write-Host "Searching for LLVM in possible paths..."
+          $llvmPath = $null
+          foreach ($path in $possiblePaths) {
+            Write-Host "Checking: $path"
+            if (Test-Path "$path\bin\clang.exe") {
+              $llvmPath = $path
+              Write-Host "Found LLVM at: $path"
+              break
+            }
+            if (Test-Path "$path\clang.exe") {
+              $llvmPath = $path
+              Write-Host "Found LLVM at: $path"
+              break
+            }
+          }
+          
+          if (-not $llvmPath) {
+            Write-Error "LLVM not found in any of the expected locations"
+            exit 1
+          }
+          
+          # 设置 LIBCLANG_PATH 环境变量
+          $libclangPath = if (Test-Path "$llvmPath\bin") { "$llvmPath\bin" } else { $llvmPath }
+          Write-Host "Setting LIBCLANG_PATH=$libclangPath"
+          echo "LIBCLANG_PATH=$libclangPath" >> $env:GITHUB_ENV
+          
+          # 验证 libclang DLL 存在
+          Write-Host "Looking for libclang DLL..."
+          $dlls = Get-ChildItem "$libclangPath" -Filter "*clang*.dll" -ErrorAction SilentlyContinue
+          if ($dlls) {
+            $dlls | Select-Object Name, FullName | Format-Table -AutoSize
+          } else {
+            Write-Warning "No libclang DLL found in $libclangPath"
+            # 尝试递归查找
+            Write-Host "Searching recursively..."
+            Get-ChildItem "$llvmPath" -Recurse -Filter "*clang*.dll" -ErrorAction SilentlyContinue | Select-Object Name, FullName
+          }
 
       # 1. 检出代码仓库
       - name: Checkout repository
