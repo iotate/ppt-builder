@@ -1,0 +1,62 @@
+{
+    "productName": "PptBuilder",
+    "version": "0.2.0",
+    "identifier": "com.iotate.pptbuilder",
+    "build": {
+        "beforeDevCommand": "npm run dev",
+        "devUrl": "http://localhost:1420",
+        "beforeBuildCommand": "npm run build",
+        "frontendDist": "../dist"
+    },
+    "app": {
+        "windows": [
+            {
+                "title": "PptBuilder - 结构化汇报/演示引擎",
+                "width": 1200,
+                "height": 720,
+                "minWidth": 800,
+                "minHeight": 600,
+                "center": true,
+                "resizable": true,
+                "devtools": true,
+                "maximized": true
+            }
+        ],
+        "security": {
+            "assetProtocol": {
+                "enable": true,
+                "scope": ["$RESOURCE/**", "C:/**", "D:/**", "E:/**", "F:/**", "G:/**"] 
+            },
+            "csp": "default-src 'self' asset://localhost http://asset.localhost; img-src 'self' asset://localhost http://asset.localhost data: blob:; style-src 'self' 'unsafe-inline' asset://localhost; script-src 'self' 'unsafe-inline' 'unsafe-eval'; font-src 'self' asset://localhost data:;"
+        }
+    },
+    "bundle": {
+        "active": true,
+        "targets": ["nsis"],
+        "icon": [
+            "icons/32x32.png",
+            "icons/128x128.png",
+            "icons/128x128@2x.png",
+            "icons/icon.icns",
+            "icons/icon.ico"
+        ],
+        "publisher": "PptBuilder Team",
+        "homepage": "https://github.com/iotate/ppt-builder",
+        "shortDescription": "AI-powered ppt generator",
+        "longDescription": "PptBuilder is an AI-powered application that helps you create professional ppt.",
+        "category": "Graphics and Design",
+        "windows": {
+            "nsis": {
+                "installerIcon": "icons/icon.ico"
+            }
+        },
+        "resources": [
+            "WebView2Loader.dll",
+            "config.yaml",
+            "styles/*",
+            "skeletons/*",
+            "templates/default/*",
+            "models/*"
+        ]
+    }
+}

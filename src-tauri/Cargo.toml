@@ -1,0 +1,51 @@
+[package]
+name = "PptBuilder"
+version = "0.2.0"
+description = "PptBuilder - 结构化汇报/演示引擎"
+authors = ["iotate"]
+edition = "2021"
+
+[lib]
+name = "pptbuilder_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["protocol-asset"] }
+tauri-plugin-opener = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "multipart"] }
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4"] }
+anyhow = "1"
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros", "fs"] }
+base64 = "0.22"
+regex = "1"
+lopdf = { version = "0.34", features = ["embed_image"] }
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp"] }
+futures = "0.3"
+zip = "0.6"
+roxmltree = "0.18"
+rusqlite = { version = "0.31", features = ["bundled"] }
+
+# OCR 依赖 - 使用 rust-paddle-ocr (ocr-rs crate, 基于 PaddleOCR MNN 后端)
+# 支持中文等多种语言，高性能
+ocr-rs = "2.3.1"
+
+# 减少符号导出以避免 "export ordinal too large" 错误
+[profile.release]
+lto = true
+codegen-units = 1
+
+[profile.dev]
+incremental = true
+# 为 debug 模式添加大地址感知，解决开发环境下的 ordinal 报错
+codegen-units = 1 
+
+

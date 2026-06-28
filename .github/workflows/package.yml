@@ -1,0 +1,82 @@
+name: PptBuilder Custom Package Build
+
+on:
+  push:
+    branches: [ "main" ]
+    tags:
+      - 'v*' # 监听标签推送
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-package:
+    # 因为产物包含 exe，限制在 Windows 环境下运行
+    runs-on: windows-latest
+    # ✅ 必须添加此权限，否则无法创建 Release
+    permissions:
+      contents: write 
+
+    steps:
+      # 0.安装 LLVM
+      - name: Install LLVM
+        id: llvm
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "18" # 你可以指定一个稳定的版本号，如 "17" 或 "18"
+
+      # 👇 新增：设置 LIBCLANG_PATH 环境变量
+      - name: Set LIBCLANG_PATH
+        run: echo "LIBCLANG_PATH=${{ steps.llvm.outputs.libclang_path }}" >> $env:GITHUB_ENV
+
+      # 1. 检出代码仓库
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. 安装 Node.js 环境
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      # 3. 安装 Rust 环境 (Tauri 后端编译必需)
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      # 4. 缓存 Rust 依赖，加速构建
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      # 5. 安装前端项目依赖
+      - name: Install frontend dependencies
+        run: npm ci
+
+      # 6. 执行自定义打包脚本
+      - name: Run Custom Package Script
+        run: npm run package
+
+      # 7. 上传构建产物
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: PptBuilder-Builds
+          # 核心配置：使用通配符精准匹配你生成的两个文件
+          # 假设这两个文件输出在项目根目录，如果是 dist 目录，请改为 dist/pptbuilder*
+          path: |
+            output/PptBuilder_*.zip
+            output/PptBuilder_*.exe
+          retention-days: 7
+      
+      # 8. 自动创建 GitHub Release
+      - name: Create GitHub Release
+        if: github.ref_type == 'tag' # 只有标签触发时执行
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            output/PptBuilder_*.zip
+            output/PptBuilder_*.exe
+          generate_release_notes: true # 自动生成基于 commit 的更新日志
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 必须提供权限令牌

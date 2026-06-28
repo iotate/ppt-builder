@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPT Builder - AI 结构化 PPT 引擎</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #E74C3C;
+            --primary-dark: #C0392B;
+            --bg-white: #FFFFFF;
+            --bg-card: #F7F7F7;
+            --text-dark: #353535;
+            --text-muted: #888888;
+            --border: #E5E5E5;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", sans-serif;
+            background: var(--bg-white);
+            color: var(--text-dark);
+            line-height: 1.7;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+        
+        /* Header / Cover */
+        header {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 80px 40px;
+            background: var(--bg-white);
+        }
+        
+        .cover-content h1 {
+            font-size: 56px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+        }
+        
+        .cover-content .tagline {
+            font-size: 24px;
+            color: var(--text-dark);
+            font-weight: 400;
+            margin-bottom: 48px;
+        }
+        
+        .cover-content .desc {
+            font-size: 18px;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+        
+        .btn-primary {
+            display: inline-block;
+            padding: 16px 40px;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        /* Section */
+        section {
+            padding: 100px 0;
+        }
+        
+        section:nth-child(even) {
+            background: var(--bg-card);
+        }
+        
+        .section-title {
+            font-size: 36px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 60px;
+            text-align: center;
+        }
+        
+        /* Problem Section */
+        .problem-text {
+            font-size: 20px;
+            line-height: 2;
+            color: var(--text-dark);
+            max-width: 700px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .problem-text .highlight {
+            background: linear-gradient(transparent 60%, rgba(231, 76, 60, 0.2) 60%);
+        }
+        
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+        }
+        
+        .feature-card {
+            background: var(--bg-white);
+            padding: 40px;
+            border: 1px solid var(--border);
+        }
+        
+        .feature-number {
+            font-size: 14px;
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .feature-card h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-dark);
+        }
+        
+        .feature-card p {
+            font-size: 16px;
+            color: var(--text-muted);
+            line-height: 1.8;
+        }
+        
+        .feature-card ul {
+            list-style: none;
+            margin-top: 20px;
+        }
+        
+        .feature-card li {
+            padding: 8px 0;
+            color: var(--text-dark);
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .feature-card li::before {
+            content: "—";
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+        }
+        
+        /* Target Users */
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+        }
+        
+        .user-card {
+            background: var(--bg-white);
+            padding: 32px;
+            border: 1px solid var(--border);
+        }
+        
+        .user-card h4 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 12px;
+        }
+        
+        .user-card .role {
+            font-size: 14px;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+        
+        .user-card p {
+            font-size: 15px;
+            color: var(--text-muted);
+        }
+        
+        /* Comparison Table */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-white);
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: 20px 24px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .comparison-table th {
+            font-weight: 600;
+            color: var(--text-dark);
+            background: var(--bg-card);
+        }
+        
+        .comparison-table td {
+            font-size: 15px;
+            color: var(--text-muted);
+        }
+        
+        .comparison-table .highlight-col {
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+        
+        .comparison-table .dim {
+            color: var(--text-muted);
+        }
+        
+        /* Summary */
+        .summary-box {
+            background: var(--bg-white);
+            padding: 60px;
+            text-align: center;
+            border: 2px solid var(--primary);
+        }
+        
+        .summary-box p {
+            font-size: 20px;
+            line-height: 1.8;
+            color: var(--text-dark);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        /* Footer */
+        footer {
+            padding: 60px 0;
+            text-align: center;
+            background: var(--bg-card);
+        }
+        
+        footer p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .cover-content h1 {
+                font-size: 36px;
+            }
+            
+            .cover-content .tagline {
+                font-size: 18px;
+            }
+            
+            .features,
+            .users-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .section-title {
+                font-size: 28px;
+            }
+            
+            .steps {
+                padding: 0;
+            }
+        }
+        
+        /* Steps */
+        .steps {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .step {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 40px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .step:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .step-number {
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .step-content h4 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+        
+        .step-content p {
+            font-size: 15px;
+            color: var(--text-muted);
+            line-height: 1.8;
+        }
+        
+        /* Screenshots */
+        .screenshots-section {
+            padding: 80px 0;
+        }
+        
+        .screenshots-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+        }
+        
+        .screenshot-item {
+            background: var(--bg-white);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        
+        .screenshot-item img {
+            width: 100%;
+            display: block;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .screenshot-item .caption {
+            padding: 20px;
+        }
+        
+        .screenshot-item .caption h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+        }
+        
+        .screenshot-item .caption p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        
+        .screenshot-full {
+            grid-column: span 2;
+        }
+        
+        @media (max-width: 768px) {
+            .screenshots-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .screenshot-full {
+                grid-column: span 1;
+            }
+        }
+        
+        /* Floating Navigation */
+        .floating-nav {
+            position: fixed;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            background: var(--bg-white);
+            border: 1px solid var(--border);
+            padding: 20px 0;
+        }
+        
+        .floating-nav ul {
+            list-style: none;
+        }
+        
+        .floating-nav li {
+            margin: 0;
+        }
+        
+        .floating-nav a {
+            display: block;
+            padding: 10px 20px;
+            font-size: 14px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-left: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .floating-nav a:hover {
+            color: var(--text-dark);
+        }
+        
+        .floating-nav a.active {
+            color: var(--primary);
+            border-left-color: var(--primary);
+            background: rgba(231, 76, 60, 0.05);
+        }
+        
+        @media (max-width: 1200px) {
+            .floating-nav {
+                display: none;
+            }
+        }
+        
+        /* Smooth scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Navigation -->
+    <nav class="floating-nav">
+        <ul>
+            <li><a href="#intro">是什么</a></li>
+            <li><a href="#features">核心价值</a></li>
+            <li><a href="#target-users">目标用户</a></li>
+            <li><a href="#comparison">差异化优势</a></li>
+            <li><a href="#features-detail">功能特性</a></li>
+            <li><a href="#screenshots">界面预览</a></li>
+            <li><a href="#usage">使用指南</a></li>
+            <li><a href="#contact">联系作者</a></li>
+        </ul>
+    </nav>
+    
+    <!-- Cover -->
+    <header>
+        <div class="cover-content">
+            <h1>PPT Builder</h1>
+            <p class="tagline">告别排版，回归思考</p>
+            <p class="desc">一款面向专业职场人的、支持私有化模型与品牌资产沉淀的 AI 结构化 PPT 引擎</p>
+            <a href="#features" class="btn-primary">了解更多</a>
+        </div>
+    </header>
+    
+    <!-- Problem -->
+    <section id="intro">
+        <div class="container">
+            <h2 class="section-title">你是否经历过这样的时刻？</h2>
+            <p class="problem-text">
+                周五下午，老板突然说："下周一的战略汇报，你准备一下。"<br><br>
+                然后你打开 PowerPoint，对着空白幻灯片发呆半小时——<span class="highlight">第一页该写什么？第二页该放什么数据？逻辑怎么串？</span><br><br>
+                好不容易憋出内容，发现字体不对、颜色太艳、Logo 位置偏了。于是你开始"洗稿"——把 AI 生成的内容一个个复制粘贴到公司模板里，调格式、对齐、改颜色……<br><br>
+                <span class="highlight">两个小时过去了，PPT 还没做完。</span>
+            </p>
+        </div>
+    </section>
+    
+    <!-- Features -->
+    <section id="features">
+        <div class="container">
+            <h2 class="section-title">我们在解决什么问题？</h2>
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-number">第一件事</div>
+                    <h3>帮你梳理逻辑，不再对着空白发呆</h3>
+                    <p>你只需要告诉它："我要做一个季度战略汇报"，然后上传你的素材——Word 报告、Excel 数据、PDF 文献，甚至只是一段语音描述。</p>
+                    <ul>
+                        <li>提炼核心信息，生成结构化大纲</li>
+                        <li>确认逻辑框架后再动手，而不是黑盒生成</li>
+                        <li>每一页的标题、内容摘要、讲稿都帮你准备好</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-number">第二件事</div>
+                    <h3>设计生成美观的、符合自定义风格的 PPT</h3>
+                    <p>大纲确认后，PPT Builder 会为每一页生成精美的配图。</p>
+                    <ul>
+                        <li>支持上传企业模板作为参考，保持品牌一致性</li>
+                        <li>可自定义风格文件，定义配色、字体、布局要求</li>
+                        <li>AI 会严格遵循你的风格规范，不会"发挥创意"</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-number">第三件事</div>
+                    <h3>导出即用，不用洗稿</h3>
+                    <p>大多数 AI PPT 工具有个致命问题：生成的 PPTX 不可编辑，或者格式一塌糊涂。</p>
+                    <ul>
+                        <li>文本框是真正的文本框，不是图片</li>
+                        <li>字体、颜色、Logo 位置严格遵循你上传的企业模板</li>
+                        <li>导出后直接提交，不需要任何格式清洗</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-number">第四件事</div>
+                    <h3>你的数据，只属于你</h3>
+                    <p>很多企业的商业计划书、财务数据，根本不敢放到公开的 AI 平台上。</p>
+                    <ul>
+                        <li>支持自带 API Key（BYOK），数据直接调用你选择的模型</li>
+                        <li>不经过我们的服务器存储</li>
+                        <li>你可以用 GPT-4o，也可以用文心一言、通义千问</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Target Users -->
+    <section id="target-users">
+        <div class="container">
+            <h2 class="section-title">目标用户</h2>
+            <div class="users-grid">
+                <div class="user-card">
+                    <div class="role">企业战略/咨询顾问</div>
+                    <h4>每天输出大量汇报材料</h4>
+                    <p>必须严格遵守公司品牌规范，字体、色号、Logo位置绝不能错</p>
+                </div>
+                <div class="user-card">
+                    <div class="role">售前解决方案专家</div>
+                    <h4>频繁输出几十页材料</h4>
+                    <p>时间紧、格式要求高，每次调整格式比写内容还累</p>
+                </div>
+                <div class="user-card">
+                    <div class="role">高校教授/科研人员</div>
+                    <h4>拥有大量现成文档</h4>
+                    <p>需要将长篇论文转化为演示文稿，数据准确性第一</p>
+                </div>
+                <div class="user-card">
+                    <div class="role">金融分析师</div>
+                    <h4>对数据准确性要求极高</h4>
+                    <p>不能容忍 AI 胡编乱造，需要可控的内容生成</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Comparison -->
+    <section id="comparison">
+        <div class="container">
+            <h2 class="section-title">差异化优势</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>维度</th>
+                        <th>其他 AI PPT 工具</th>
+                        <th>PPT Builder</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>生成逻辑</strong></td>
+                        <td class="dim">黑盒生成，输入一句话直接出成品</td>
+                        <td class="highlight-col">白盒结构化：先定大纲框架，再生成内容，全程可控</td>
+                    </tr>
+                    <tr>
+                        <td><strong>模板适配</strong></td>
+                        <td class="dim">仅支持平台内置模板</td>
+                        <td class="highlight-col">深度母版解析：完美还原企业专属 PPTX 母版</td>
+                    </tr>
+                    <tr>
+                        <td><strong>导出质量</strong></td>
+                        <td class="dim">多为网页端演示，导出 PPTX 易错版、不可编辑</td>
+                        <td class="highlight-col">原生高保真导出：100% 可编辑的文本框与原生图表</td>
+                    </tr>
+                    <tr>
+                        <td><strong>模型生态</strong></td>
+                        <td class="dim">绑定平台自有模型，数据可能用于训练</td>
+                        <td class="highlight-col">BYOK（自带密钥）：数据隐私安全，模型随心切换</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+    
+    <!-- Features Detail -->
+    <section id="features-detail">
+        <div class="container">
+            <h2 class="section-title">功能特性</h2>
+            <div class="features">
+                <div class="feature-card">
+                    <h3>思路梳理（AI 对话）</h3>
+                    <ul>
+                        <li>通过对话厘清演示目标和核心信息</li>
+                        <li>上传文本附件作为参考资料</li>
+                        <li>AI 帮助梳理思路并生成需求文档</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h3>大纲生成</h3>
+                    <ul>
+                        <li>智能大纲生成：基于需求文档自动生成结构化大纲</li>
+                        <li>汇报框架：支持 SCQA、STAR、PREP 等经典框架</li>
+                        <li>信息密度：简洁/标准/详细三种选择</li>
+                        <li>自由编辑：随时调整大纲内容</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h3>PPT 设计</h3>
+                    <ul>
+                        <li>批量生成：一键为所有页面生成配图</li>
+                        <li>单页重生成：对不满意的单页可重新生成</li>
+                        <li>图片微调：支持对生成的图片进行微调</li>
+                        <li>模板参考：使用模板图片保持风格一致</li>
+                        <li>风格定制：自定义配色、风格等要求</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h3>导出分享</h3>
+                    <ul>
+                        <li>PDF 导出：一键导出高质量 PDF 文件</li>
+                        <li>PPT 导出：一键导出可编辑的 PPT 文件</li>
+                        <li>原生格式：文本框可编辑，非图片</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h3>自定义配置</h3>
+                    <ul>
+                        <li>大模型 API：自定义接入文生文和文生图 API</li>
+                        <li>模板管理：自定义多个模板按需选用</li>
+                        <li>风格管理：自定义多个风格按需选用</li>
+                        <li>框架管理：自定义汇报框架</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h3>支持的 AI 提供商</h3>
+                    <ul>
+                        <li>LLM：OpenAI、Azure、DashScope、DeepSeek、自定义</li>
+                        <li>图像生成：OpenAI、Azure、DashScope、自定义</li>
+                        <li>完全兼容 OpenAI API 格式</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Screenshots -->
+    <section id="screenshots" class="screenshots-section">
+        <div class="container">
+            <h2 class="section-title">界面预览</h2>
+            <div class="screenshots-grid">
+                <div class="screenshot-item">
+                    <img src="image/01-project.png" alt="项目管理">
+                    <div class="caption">
+                        <h4>项目管理</h4>
+                        <p>创建和管理多个项目，清晰的项目列表视图</p>
+                    </div>
+                </div>
+                <div class="screenshot-item">
+                    <img src="image/02-brainstorm.png" alt="思路梳理">
+                    <div class="caption">
+                        <h4>思路梳理</h4>
+                        <p>与 AI 对话厘清演示目标，上传参考资料</p>
+                    </div>
+                </div>
+                <div class="screenshot-item">
+                    <img src="image/03-outline.png" alt="大纲生成">
+                    <div class="caption">
+                        <h4>大纲生成</h4>
+                        <p>选择汇报框架，自动生成结构化大纲</p>
+                    </div>
+                </div>
+                <div class="screenshot-item">
+                    <img src="image/04-ppts.png" alt="PPT 设计">
+                    <div class="caption">
+                        <h4>PPT 设计</h4>
+                        <p>选择模板和风格，批量生成页面图片</p>
+                    </div>
+                </div>
+                <div class="screenshot-item">
+                    <img src="image/05-framework.png" alt="框架管理">
+                    <div class="caption">
+                        <h4>框架管理</h4>
+                        <p>自定义 SCQA、STAR 等汇报框架</p>
+                    </div>
+                </div>
+                <div class="screenshot-item">
+                    <img src="image/06-template.png" alt="模板管理">
+                    <div class="caption">
+                        <h4>模板管理</h4>
+                        <p>上传和管理企业专属 PPT 模板</p>
+                    </div>
+                </div>
+                <div class="screenshot-item">
+                    <img src="image/07-styles.png" alt="风格管理">
+                    <div class="caption">
+                        <h4>风格管理</h4>
+                        <p>定义配色、字体、布局等风格规范</p>
+                    </div>
+                </div>
+                <div class="screenshot-item">
+                    <img src="image/08-api.png" alt="API 配置">
+                    <div class="caption">
+                        <h4>API 配置</h4>
+                        <p>自定义接入各类 LLM 和图像生成 API</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Usage Guide -->
+    <section id="usage">
+        <div class="container">
+            <h2 class="section-title">使用指南</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>配置 API</h4>
+                        <p>首次使用需要配置 LLM 和图像生成 API。点击左侧菜单「API」，填写提供商、API 端点、API Key 和模型名称，点击「测试连接」验证配置。</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>创建项目</h4>
+                        <p>点击左侧菜单「项目」，点击「新建项目」，输入项目主题，系统将自动创建项目文件夹。</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>思路梳理</h4>
+                        <p>进入「思路」页面，通过对话与 AI 交流，厘清演示目标。可上传文本附件作为参考资料，点击「生成需求」生成需求文档。</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>生成大纲</h4>
+                        <p>进入「大纲」页面，选择汇报框架、信息密度、期望页数，点击「生成大纲」。可直接编辑 Markdown 内容，点击「保存大纲」。</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h4>编辑页面与生成图片</h4>
+                        <p>进入「PPT设计」页面，选择模板和风格，点击「批量生成」或「生成当前」。生成完成后点击「导出 PDF」或「导出 PPT」生成最终文件。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Summary -->
+    <section>
+        <div class="container">
+            <div class="summary-box">
+                <p><strong>PPT Builder 不是让你"玩 AI"，而是让你在遵守企业规范的前提下，把原本需要 3 天的汇报材料压缩到 3 小时完成。</strong></p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="container">
+            <h2 class="section-title">联系作者</h2>
+            <p>GitHub: <a href="https://github.com/iotate/ppt-builder">https://github.com/iotate/ppt-builder</a></p>
+            <p style="margin-top: 12px;">MIT License</p>
+        </div>
+    </footer>
+    
+    <script>
+        // Floating navigation highlight on scroll
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.floating-nav a');
+        
+        function updateActiveNav() {
+            const scrollPos = window.scrollY + window.innerHeight / 3;
+            
+            sections.forEach(section => {
+                const top = section.offsetTop;
+                const height = section.offsetHeight;
+                const id = section.getAttribute('id');
+                
+                if (scrollPos >= top && scrollPos < top + height) {
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === '#' + id) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }
+        
+        window.addEventListener('scroll', updateActiveNav);
+        window.addEventListener('load', updateActiveNav);
+    </script>
+</body>
+</html>

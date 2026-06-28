@@ -1,0 +1,30 @@
+llm:
+  provider: openai
+  endpoint: https://api.openai.com/v1
+  api_key: ""
+  model: gpt-4o
+  extra_headers: []
+
+img:
+  provider: openai
+  endpoint: https://api.openai.com/v1/images/generations
+  api_key: ""
+  model: gpt-image-2
+  extra_headers: []
+
+image_sizes:
+  - name: "16:9 横屏"
+    width: 1920
+    height: 1072
+  - name: "9:16 竖屏"
+    width: 1072
+    height: 1920
+  - name: "4:3 横向"
+    width: 1440
+    height: 1072
+  - name: "3:4 纵向"
+    width: 1072
+    height: 1440
+  - name: "1:1 方形"
+    width: 1072
+    height: 1072
